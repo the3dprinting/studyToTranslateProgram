@@ -191,21 +191,22 @@ ExtrusionLoop::split_at_vertex(const Point &point)
         int idx = path->polyline.find_point(point);
         if (idx != -1) {
             if (this->paths.size() == 1) {
-                // just change the order of points
+                // 仅仅改变点排序！----从这里的使用方法推测path的第一个点和最后一个点相等（每一个path不一定，应为这时就一个path！）
                 path->polyline.points.insert(path->polyline.points.end(), path->polyline.points.begin() + 1, path->polyline.points.begin() + idx + 1);
                 path->polyline.points.erase(path->polyline.points.begin(), path->polyline.points.begin() + idx);
             } else {
                 // new paths list starts with the second half of current path
                 ExtrusionPaths new_paths;
-                {
+                {//啊，单独括号内程序，第一次看到！
                     ExtrusionPath p = *path;
                     p.polyline.points.erase(p.polyline.points.begin(), p.polyline.points.begin() + idx);
-                    if (p.polyline.is_valid()) new_paths.push_back(p);
+                    if (p.polyline.is_valid()) new_paths.push_back(p);  //有效说明点的数目大于等于两个！
                 }
             
                 // then we add all paths until the end of current path list
                 new_paths.insert(new_paths.end(), path+1, this->paths.end());  // not including this path
-            
+				//下一步加上this->paths.begin()时没有删除this->paths.begin().front()或this->paths.end().back()
+				//否则就是每一个path的最后点都等于下一个path的第一个点！
                 // then we add all paths since the beginning of current list up to the previous one
                 new_paths.insert(new_paths.end(), this->paths.begin(), path);  // not including this path
             

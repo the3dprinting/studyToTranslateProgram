@@ -56,7 +56,7 @@ class ExtrusionEntity   //抽象类，纯虚函数！
 
 typedef std::vector<ExtrusionEntity*> ExtrusionEntitiesPtr;
 
-class ExtrusionPath : public ExtrusionEntity   //挤出路径类
+class ExtrusionPath : public ExtrusionEntity   //挤出路径类,默认
 {
     public:
     Polyline polyline;   //本身的所有线段
@@ -79,7 +79,7 @@ class ExtrusionPath : public ExtrusionEntity   //挤出路径类
     bool is_infill() const;   //返回本身是否是erBridgeInfill或者erInternalInfill或者 erSolidInfill或者erTopSolidInfill
     bool is_solid_infill() const;  //返回本身是否是erBridgeInfill或者erSolidInfill或者erTopSolidInfill
     bool is_bridge() const;  //返回本身是否是erBridgeInfill或者erOverhangPerimeter
-    Polygons grow() const;   
+    Polygons grow() const;   //将本身的polyline向外扩大width/2，然后返回Polygons类型
     double min_mm3_per_mm() const {
         return this->mm3_per_mm;
     };
@@ -90,28 +90,28 @@ class ExtrusionPath : public ExtrusionEntity   //挤出路径类
 
 typedef std::vector<ExtrusionPath> ExtrusionPaths;   //定义好多ExtrusionPath的组合
 
-class ExtrusionLoop : public ExtrusionEntity   //挤出循环类
+class ExtrusionLoop : public ExtrusionEntity   //挤出循环类，说明里面的路径坐标点首位相连
 {
     public:
     ExtrusionPaths paths;     //里面有好多挤出路径
     ExtrusionLoopRole role;   //挤出循环的角色，代表自身的类别
     
     ExtrusionLoop(ExtrusionLoopRole role = elrDefault) : role(role) {};
-    bool is_loop() const {
+    bool is_loop() const {   //是loop，和父类不同
         return true;
     };
-    bool can_reverse() const {
+    bool can_reverse() const {   //不能reverse,和父类不同
         return false;
     };
-    ExtrusionLoop* clone() const;   //克隆本身路径的指针一个
-    bool make_clockwise();          //本身进行polygon（）后，判断来绝对是否reverse()
-    bool make_counter_clockwise();  //本身进行polygon（）后，判断来绝对是否reverse()
+    ExtrusionLoop* clone() const;   //克隆本身ExtrusionLoop的指针一个并返回
+    bool make_clockwise();          //本身进行polygon（）后，判断来决定是否reverse()
+    bool make_counter_clockwise();  //本身进行polygon（）后，判断来决定是否reverse()
     void reverse();                 //反转本身paths和每个path的点的顺序
     Point first_point() const;      //所有paths的第一个点
     Point last_point() const;       //所有paths的最后一个点，同第一个点（？）
     Polygon polygon() const;        //所有paths里面的path接连合并到一起，组成polygon类
     double length() const;          //返回本身paths里面的总长度
-    bool split_at_vertex(const Point &point);    //
+    bool split_at_vertex(const Point &point);    //将paths从输入点处分开，挺好的实现方法,没有改点则返回false
     void split_at(const Point &point);           //
     void clip_end(double distance, ExtrusionPaths* paths) const; //
     bool has_overhang_point(const Point &point) const;    //
